@@ -1,0 +1,48 @@
+======================================================
+DEADLOCK PREVENTION & RECOVERY TOOLKIT - WORKPLAN
+======================================================
+
+1. PROJECT OVERVIEW
+-------------------
+The Deadlock Prevention & Recovery Toolkit is an interactive web-based system designed to simulate, detect, and recover from deadlocks in an operating system environment. It provides a visual and analytical approach to resource allocation, process management, and deadlock resolution.
+
+2. TECHNOLOGY STACK & FRAMEWORKS USED
+-------------------------------------
+* Frontend:
+  - React.js: Used as the core framework for building the user interface and UI components (like SimulationPanel, StateTable, etc.).
+  - Vite: Used as the modern build tool and development server for fast frontend development.
+  - D3.js: Utilized for rendering interactive, scalable, and dynamic Resource Allocation Graphs (RAG) in the dashboard (specifically in the ResourceGraph component).
+  - HTML & CSS: Styling is done to achieve a premium aesthetic with a custom color scheme, utilizing modern layout techniques and animations.
+
+* Backend:
+  - FastAPI (Python): Serves as the high-performance backend API framework. It handles all complex OS logic simulations, state management, and algorithm execution.
+  - Uvicorn: ASGI web server running the FastAPI application.
+
+3. ALGORITHMS IMPLEMENTED & THEIR LOCATIONS
+---------------------------------------------
+The project relies on classical Operating System algorithms for deadlock handling, distributed across specific backend modules.
+
+A. Banker's Algorithm (Deadlock Avoidance)
+   - Location: `backend/banker.py` and handled via endpoints in `backend/main.py`.
+   - Purpose: Ensures the system never enters an unsafe state.
+   - Usage: Used during resource allocation. When a process requests resources, the system runs the Resource-Request algorithm and the Safety algorithm. It simulates the allocation, calculates the new "Need" and "Available" matrices, and checks if a Safe Sequence exists. If an unsafe state would result, the request is denied.
+
+B. Cycle Detection in Resource Allocation Graph (Deadlock Detection)
+   - Location: `backend/detector.py`.
+   - Purpose: Used for identifying if deadlocks are actively occurring in the system.
+   - Usage: The system constructs edges for a Resource Allocation Graph (Process → Resource edges for requests, Resource → Process edges for allocations). It then performs cycle detection (e.g., using Directed Graph cycle finding via DFS) to find circular wait conditions. It flags the processes involved in the deadlock cycle.
+
+C. Deadlock Recovery Algorithms (Deadlock Mitigation)
+   - Location: `backend/recovery.py` and triggered via endpoints in `backend/main.py`.
+   - Purpose: Automatically or manually breaking existing deadlocks.
+   - Usage: 
+     - Process Termination: The system can systematically select processes in the deadlock cycle and abort them (freeing their allocated resources) until the cycle is broken.
+     - Resource Preemption (if implemented): Taking resources from lower-priority processes to fulfill the needs of deadlocked processes.
+
+4. OVERALL WORKFLOW
+-------------------
+1. Initialization: The user sets up the system state via the React frontend (defining available resources, total processes, and maximum claims). The frontend sends this to the FastAPI backend, which initializes the session state.
+2. Simulation: The user triggers resource requests or releases through UI controls.
+3. Checking: The backend uses Banker's Algorithm to determine if requests map to a safe state, updating matrices accordingly.
+4. Detection: If unsafe states are allowed or specific cyclic interactions occur, the Graph cycle detection algorithm scans for deadlocks and highlights them in the D3.js Graph.
+5. Recovery: The user clicks the visually highlighted "Recover" button, prompting the backend to execute recovery algorithms, terminate processes, and update the UI with the safe state.
