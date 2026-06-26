@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Deadlock Toolkit — OS Simulator</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <!-- html2canvas for screenshot export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════
+     FLOATING BACKGROUND CANVAS
+══════════════════════════════════════════════════ -->
+<canvas id="bg-canvas"></canvas>
+
+<!-- ══════════════════════════════════════════════════
+     SIDEBAR NAV
+══════════════════════════════════════════════════ -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">
+      <svg viewBox="0 0 40 40" width="36" height="36">
+        <circle cx="20" cy="20" r="18" fill="none" stroke="url(#lg1)" stroke-width="2"/>
+        <circle cx="20" cy="9"  r="5"  fill="url(#lg2)"/>
+        <circle cx="32" cy="28" r="5"  fill="url(#lg3)"/>
+        <circle cx="8"  cy="28" r="5"  fill="url(#lg4)"/>
+        <line x1="20" y1="14" x2="27" y2="23" stroke="#a78bfa" stroke-width="1.5" stroke-dasharray="3 2"/>
+        <line x1="27" y1="23" x2="13" y2="23" stroke="#f472b6" stroke-width="1.5" stroke-dasharray="3 2"/>
+        <line x1="13" y1="23" x2="20" y2="14" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="3 2"/>
+        <defs>
+          <linearGradient id="lg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#38bdf8"/><stop offset="100%" stop-color="#a78bfa"/></linearGradient>
+          <linearGradient id="lg2" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#38bdf8"/><stop offset="100%" stop-color="#7dd3fc"/></linearGradient>
+          <linearGradient id="lg3" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#a78bfa"/><stop offset="100%" stop-color="#c4b5fd"/></linearGradient>
+          <linearGradient id="lg4" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#f472b6"/><stop offset="100%" stop-color="#fb7185"/></linearGradient>
+        </defs>
+      </svg>
+    </div>
+    <div class="logo-text">
+      <span class="logo-title">DeadLock</span>
+      <span class="logo-sub">OS Toolkit v2</span>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <button class="nav-item active" data-tab="simulator">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+      <span>Simulator</span>
+    </button>
+    <button class="nav-item" data-tab="detection">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <span>Detection</span>
+    </button>
+    <button class="nav-item" data-tab="recovery">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+      <span>Recovery</span>
+    </button>
+    <button class="nav-item" data-tab="rag">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="3"/><circle cx="5" cy="19" r="3"/><circle cx="19" cy="19" r="3"/><line x1="12" y1="8" x2="5" y2="16"/><line x1="12" y1="8" x2="19" y2="16"/></svg>
+      <span>RAG Graph</span>
+    </button>
+    <button class="nav-item" data-tab="theory">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      <span>Theory</span>
+    </button>
+  </nav>
+
+  <div class="sidebar-bottom">
+    <button class="theme-toggle" id="theme-toggle" title="Toggle theme">
+      <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <span>Theme</span>
+    </button>
+    <button class="export-btn" id="btn-export" title="Export screenshot">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      <span>Export</span>
+    </button>
+  </div>
+</aside>
+
+<!-- ══════════════════════════════════════════════════
+     MAIN CONTENT
+══════════════════════════════════════════════════ -->
+<main class="main-content" id="main-content">
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <button class="hamburger" id="hamburger">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="topbar-title">
+      <h1 id="page-title">Banker's Algorithm Simulator</h1>
+      <span id="page-sub">Configure processes and resources, then run the algorithm</span>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn btn-demo" id="btn-demo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Demo
+      </button>
+      <button class="btn btn-reset" id="btn-reset">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+        Reset
+      </button>
+    </div>
+  </header>
+
+  <!-- ── TAB: SIMULATOR ── -->
+  <section class="tab-panel active" id="tab-simulator">
+
+    <!-- Config row -->
+    <div class="config-strip glass-card">
+      <div class="config-item">
+        <label>Processes</label>
+        <div class="number-control">
+          <button class="nc-btn" data-action="dec" data-target="num-proc">−</button>
+          <span id="num-proc" class="nc-val">5</span>
+          <button class="nc-btn" data-action="inc" data-target="num-proc">+</button>
+        </div>
+      </div>
+      <div class="config-divider"></div>
+      <div class="config-item">
+        <label>Resource Types</label>
+        <div class="number-control">
+          <button class="nc-btn" data-action="dec" data-target="num-res">−</button>
+          <span id="num-res" class="nc-val">3</span>
+          <button class="nc-btn" data-action="inc" data-target="num-res">+</button>
+        </div>
+      </div>
+      <div class="config-divider"></div>
+      <div class="config-item">
+        <label>Available Resources</label>
+        <div id="available-inputs" class="avail-inputs"></div>
+      </div>
+      <div class="config-actions">
+        <button class="btn btn-primary" id="btn-run">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          Run Banker's
+        </button>
+        <button class="btn btn-secondary" id="btn-stepmode">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          Step Mode
+        </button>
+      </div>
+    </div>
+
+    <!-- Matrix grid -->
+    <div class="matrices-grid" id="matrices-grid">
+      <div class="glass-card matrix-card" id="card-alloc">
+        <div class="card-header">
+          <div class="card-icon" style="--ic:#38bdf8">A</div>
+          <div>
+            <h3>Allocation Matrix</h3>
+            <p>Resources currently held by each process</p>
+          </div>
+        </div>
+        <div id="alloc-matrix"></div>
+      </div>
+      <div class="glass-card matrix-card" id="card-max">
+        <div class="card-header">
+          <div class="card-icon" style="--ic:#a78bfa">M</div>
+          <div>
+            <h3>Maximum Matrix</h3>
+            <p>Maximum resources each process may ever need</p>
+          </div>
+        </div>
+        <div id="max-matrix"></div>
+      </div>
+      <div class="glass-card matrix-card need-card" id="card-need">
+        <div class="card-header">
+          <div class="card-icon" style="--ic:#34d399">N</div>
+          <div>
+            <h3>Need Matrix <span class="auto-badge">Auto-computed</span></h3>
+            <p>Need = Maximum − Allocation</p>
+          </div>
+        </div>
+        <div id="need-matrix"></div>
+      </div>
+    </div>
+
+    <!-- Result area -->
+    <div id="result-area" class="result-area hidden">
+      <div id="status-card" class="status-card glass-card">
+        <div class="status-icon" id="status-icon"></div>
+        <div class="status-body">
+          <h2 id="status-title"></h2>
+          <p  id="status-msg"></p>
+        </div>
+        <div class="safe-seq-wrap" id="safe-seq-wrap"></div>
+      </div>
+    </div>
+
+    <!-- Step simulation panel -->
+    <div id="step-panel" class="step-panel glass-card hidden">
+      <div class="step-header">
+        <h3>Step-by-Step Simulation</h3>
+        <div class="step-controls">
+          <button class="btn btn-sm" id="step-prev">‹ Prev</button>
+          <span class="step-counter" id="step-counter">0 / 0</span>
+          <button class="btn btn-sm btn-primary" id="step-next">Next ›</button>
+          <button class="btn btn-sm btn-ghost" id="step-auto">▶ Auto</button>
+          <button class="btn btn-sm btn-ghost" id="step-close">✕</button>
+        </div>
+      </div>
+      <div class="step-progress-bar"><div id="step-fill"></div></div>
+      <div class="step-body">
+        <div class="step-visual" id="step-visual"></div>
+        <div class="step-explain" id="step-explain"></div>
+      </div>
+      <div class="step-work-row" id="step-work-row"></div>
+    </div>
+
+    <!-- Explanation panel -->
+    <div class="glass-card explain-panel" id="explain-panel">
+      <div class="explain-header">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span>Algorithm Log</span>
+        <button class="btn btn-ghost btn-xs" id="clear-log">Clear</button>
+      </div>
+      <div class="log-scroll" id="log-scroll">
+        <div class="log-placeholder">Run the algorithm to see step-by-step explanations here...</div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ── TAB: DETECTION ── -->
+  <section class="tab-panel" id="tab-detection">
+    <div class="detection-hero glass-card">
+      <div class="dh-icon">🔍</div>
+      <h2>Deadlock Detection Engine</h2>
+      <p>Uses the resource allocation state to detect circular wait conditions among processes.</p>
+      <button class="btn btn-primary btn-lg" id="btn-detect">Run Detection Algorithm</button>
+    </div>
+
+    <div id="detect-result" class="hidden">
+      <div id="detect-status" class="status-card glass-card"></div>
+      <div class="detection-grid">
+        <div class="glass-card" id="detect-processes-card">
+          <div class="card-header"><h3>Process States</h3></div>
+          <div id="detect-processes"></div>
+        </div>
+        <div class="glass-card" id="detect-log-card">
+          <div class="card-header"><h3>Detection Log</h3></div>
+          <div class="log-scroll" id="detect-log"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── TAB: RECOVERY ── -->
+  <section class="tab-panel" id="tab-recovery">
+    <div class="recovery-intro glass-card" id="recovery-intro">
+      <p class="hint-text">Run Deadlock Detection first to identify deadlocked processes, then use recovery options here.</p>
+    </div>
+
+    <div id="recovery-options" class="hidden">
+      <div class="recovery-banner glass-card" id="recovery-banner"></div>
+      <div class="recovery-methods">
+        <div class="glass-card recovery-method" id="method-terminate">
+          <div class="rm-icon" style="background:rgba(239,68,68,0.15);border-color:rgba(239,68,68,0.4)">💀</div>
+          <h3>Process Termination</h3>
+          <p>Terminate selected deadlocked process. Its resources are freed back to the system.</p>
+          <div class="proc-select-list" id="terminate-procs"></div>
+          <button class="btn btn-danger btn-full" id="btn-terminate">Terminate Process</button>
+        </div>
+        <div class="glass-card recovery-method" id="method-preempt">
+          <div class="rm-icon" style="background:rgba(245,158,11,0.15);border-color:rgba(245,158,11,0.4)">⚡</div>
+          <h3>Resource Preemption</h3>
+          <p>Forcibly take resources from a victim process. Process is rolled back to safe state.</p>
+          <div class="proc-select-list" id="preempt-procs"></div>
+          <button class="btn btn-warning btn-full" id="btn-preempt">Preempt Resources</button>
+        </div>
+        <div class="glass-card recovery-method" id="method-rollback">
+          <div class="rm-icon" style="background:rgba(139,92,246,0.15);border-color:rgba(139,92,246,0.4)">↩</div>
+          <h3>Rollback Simulation</h3>
+          <p>Simulate rolling back all deadlocked processes to their initial state (checkpoint).</p>
+          <div class="rollback-info" id="rollback-info"></div>
+          <button class="btn btn-purple btn-full" id="btn-rollback">Simulate Rollback</button>
+        </div>
+      </div>
+      <div class="glass-card recovery-log-card" id="recovery-log-card">
+        <div class="card-header"><h3>Recovery Log</h3></div>
+        <div class="log-scroll" id="recovery-log"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── TAB: RAG ── -->
+  <section class="tab-panel" id="tab-rag">
+    <div class="rag-toolbar glass-card">
+      <div class="rag-legend">
+        <span><span class="leg" style="background:#38bdf8;border-radius:50%"></span> Process Node</span>
+        <span><span class="leg" style="background:#fbbf24;border-radius:3px"></span> Resource Node</span>
+        <span><span class="leg" style="background:#34d399"></span> Allocation Edge</span>
+        <span><span class="leg" style="background:#f87171"></span> Request Edge</span>
+        <span><span class="leg" style="background:#f43f5e;animation:blink 1s infinite"></span> Deadlock Cycle</span>
+      </div>
+      <div class="rag-actions">
+        <button class="btn btn-sm btn-secondary" id="rag-refresh">↺ Refresh</button>
+        <button class="btn btn-sm btn-ghost" id="rag-zoom-in">＋</button>
+        <button class="btn btn-sm btn-ghost" id="rag-zoom-out">－</button>
+      </div>
+    </div>
+    <div class="glass-card rag-wrap">
+      <canvas id="rag-canvas" width="900" height="500"></canvas>
+    </div>
+    <div class="glass-card rag-info" id="rag-info">
+      <p>Configure the system in the Simulator tab, then view the Resource Allocation Graph here.</p>
+    </div>
+  </section>
+
+  <!-- ── TAB: THEORY ── -->
+  <section class="tab-panel" id="tab-theory">
+    <div class="theory-hero glass-card">
+      <h2>Operating Systems — Deadlock Theory</h2>
+      <p>Complete reference for your viva examination</p>
+    </div>
+    <div class="theory-content">
+
+      <div class="theory-block glass-card" data-color="red">
+        <div class="tb-num">01</div>
+        <h3>What is Deadlock?</h3>
+        <p>A <strong>deadlock</strong> is a condition where a set of processes are permanently blocked because each process holds at least one resource and is waiting for a resource held by another process in the set.</p>
+        <div class="code-block">P1 holds R1 → waits for R2<br>P2 holds R2 → waits for R1<br>∴ Circular wait → DEADLOCK</div>
+      </div>
+
+      <div class="theory-block glass-card" data-color="amber">
+        <div class="tb-num">02</div>
+        <h3>4 Necessary Conditions (Coffman, 1971)</h3>
+        <div class="conditions-grid">
+          <div class="cond"><span class="cond-n">1</span><strong>Mutual Exclusion</strong><p>At least one resource must be non-sharable — only one process uses it at a time.</p></div>
+          <div class="cond"><span class="cond-n">2</span><strong>Hold and Wait</strong><p>A process holds ≥1 resource while waiting for additional resources held by others.</p></div>
+          <div class="cond"><span class="cond-n">3</span><strong>No Preemption</strong><p>Resources cannot be forcibly taken from a process — only voluntarily released.</p></div>
+          <div class="cond"><span class="cond-n">4</span><strong>Circular Wait</strong><p>A closed chain {P0, P1, …, Pn} where P0 waits for P1, P1 for P2, …, Pn for P0.</p></div>
+        </div>
+      </div>
+
+      <div class="theory-block glass-card" data-color="blue">
+        <div class="tb-num">03</div>
+        <h3>Banker's Algorithm (Dijkstra, 1965)</h3>
+        <p>A deadlock <strong>avoidance</strong> algorithm. Before granting any resource request, it simulates the allocation and checks if the system remains in a <strong>safe state</strong>.</p>
+        <div class="algo-steps">
+          <div class="as"><span>1</span> Compute Need = Max − Allocation</div>
+          <div class="as"><span>2</span> Set Work = Available, Finish[i] = false for all i</div>
+          <div class="as"><span>3</span> Find process Pi where Finish[i]=false AND Need[i] ≤ Work</div>
+          <div class="as"><span>4</span> If found: Work += Allocation[i], Finish[i] = true → go to step 3</div>
+          <div class="as"><span>5</span> If all Finish[i]=true → SAFE STATE, else UNSAFE</div>
+        </div>
+      </div>
+
+      <div class="theory-block glass-card" data-color="purple">
+        <div class="tb-num">04</div>
+        <h3>Detection vs Prevention vs Avoidance vs Recovery</h3>
+        <table class="theory-table">
+          <thead><tr><th>Strategy</th><th>Timing</th><th>Mechanism</th><th>Cost</th><th>Utilization</th></tr></thead>
+          <tbody>
+            <tr><td class="green-t">Prevention</td><td>Design time</td><td>Deny ≥1 Coffman condition</td><td>Low</td><td>Low</td></tr>
+            <tr><td class="blue-t">Avoidance</td><td>Per request</td><td>Banker's Algorithm</td><td>Medium</td><td>Medium</td></tr>
+            <tr><td class="amber-t">Detection</td><td>Periodic</td><td>RAG cycle / Wait-for graph</td><td>Medium</td><td>High</td></tr>
+            <tr><td class="red-t">Recovery</td><td>Post-detection</td><td>Terminate / Preempt / Rollback</td><td>High</td><td>High</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="theory-block glass-card" data-color="green">
+        <div class="tb-num">05</div>
+        <h3>Resource Allocation Graph (RAG)</h3>
+        <p>A directed graph G = (V, E) where V = {processes P} ∪ {resources R}.</p>
+        <ul class="theory-list">
+          <li><strong>Assignment edge:</strong> Ri → Pj means resource Ri is allocated to Pj</li>
+          <li><strong>Request edge:</strong> Pi → Rj means Pi is requesting resource Rj</li>
+          <li><strong>Deadlock detection:</strong> If the graph contains a cycle AND each resource in the cycle has only one instance → deadlock</li>
+        </ul>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<!-- LOADING OVERLAY -->
+<div class="loading-overlay hidden" id="loading-overlay">
+  <div class="loader-box">
+    <div class="spinner"></div>
+    <p id="loading-text">Running algorithm...</p>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- KEYBOARD SHORTCUT HINT -->
+<div class="kb-hint" id="kb-hint">
+  <span><kbd>R</kbd> Run</span>
+  <span><kbd>D</kbd> Demo</span>
+  <span><kbd>T</kbd> Theme</span>
+  <span><kbd>?</kbd> Hide</span>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
